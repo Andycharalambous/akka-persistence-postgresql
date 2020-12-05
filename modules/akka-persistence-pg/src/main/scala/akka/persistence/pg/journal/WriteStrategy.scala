@@ -28,7 +28,7 @@ class SingleThreadedBatchWriteStrategy(override val pluginConfig: PluginConfig, 
   import driver.api._
   implicit val timeout = Timeout(10, TimeUnit.SECONDS)
 
-  private val eventStoreActor: ActorRef = system.actorOf(StoreActor.props(pluginConfig))
+  private val eventStoreActor: ActorRef = system.systemActorOf(StoreActor.props(pluginConfig))
 
   override def store(actions: Seq[DBIO[_]], notifier: Notifier)(
       implicit executionContext: ExecutionContext
@@ -103,7 +103,7 @@ class RowIdUpdatingStrategy(override val pluginConfig: PluginConfig, override va
 
   import driver.api._
 
-  private val rowIdUpdater: ActorRef = system.actorOf(RowIdUpdater.props(pluginConfig), "AkkaPgRowIdUpdater")
+  private val rowIdUpdater: ActorRef = system.systemActorOf(RowIdUpdater.props(pluginConfig), "AkkaPgRowIdUpdater")
 
   def store(actions: Seq[DBIO[_]], notifier: Notifier)(implicit executionContext: ExecutionContext): Future[Unit] =
     pluginConfig.database
