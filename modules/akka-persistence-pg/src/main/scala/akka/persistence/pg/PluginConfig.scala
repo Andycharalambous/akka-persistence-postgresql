@@ -45,7 +45,7 @@ class PluginConfig(systemConfig: Config) {
   def shutdownDataSource(): Unit = database.close()
 
   val jsonType: String     = config.getString("pgjson")
-  val noOffsetText: String = config.getString("noOffsetTex")
+  val noOffsetText: String = config.getString("noOffsetText")
 
   val pgPostgresProfile = new PgPostgresProfileImpl(jsonType match {
     case "jsonb"   => "jsonb"
