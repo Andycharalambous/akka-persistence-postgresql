@@ -8,4 +8,4 @@ trait PgPostgresProfile extends PostgresProfile with AkkaPgJdbcTypes {
 
 }
 
-class PgPostgresProfileImpl(override val pgjson: String) extends PgPostgresProfile
+class PgPostgresProfileImpl(override val pgjson: String, override val noOffsetText: String) extends PgPostgresProfile

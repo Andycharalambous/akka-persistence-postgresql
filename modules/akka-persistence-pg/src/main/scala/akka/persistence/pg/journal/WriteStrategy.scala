@@ -2,13 +2,27 @@ package akka.persistence.pg.journal
 
 import java.util.concurrent.TimeUnit
 
-import akka.actor.{ActorRef, ActorSystem, Status}
+import akka.actor.{ActorRef, ActorSystem, ExtendedActorSystem, Extension, ExtensionId, Props, Status}
 import akka.persistence.pg.PluginConfig
 import akka.persistence.pg.journal.StoreActor.{Store, StoreSuccess}
 import akka.pattern.ask
 import akka.util.Timeout
 
 import scala.concurrent.{ExecutionContext, Future}
+
+trait WriteStrategyExtension extends Extension {
+  def actorOf(props: Props, name: String): ActorRef
+}
+
+class WriteStrategyExtensionImpl(system: ExtendedActorSystem) extends WriteStrategyExtension {
+  def actorOf(props: Props, name: String): ActorRef =
+    system.systemActorOf(props, name)
+}
+
+object WriteStrategyExtension extends ExtensionId[WriteStrategyExtension] {
+
+  def createExtension(system: ExtendedActorSystem): WriteStrategyExtension = new WriteStrategyExtensionImpl(system)
+}
 
 trait WriteStrategy {
 
@@ -28,7 +42,8 @@ class SingleThreadedBatchWriteStrategy(override val pluginConfig: PluginConfig, 
   import driver.api._
   implicit val timeout = Timeout(10, TimeUnit.SECONDS)
 
-  private val eventStoreActor: ActorRef = system.systemActorOf(StoreActor.props(pluginConfig))
+  private val eventStoreActor: ActorRef =
+    WriteStrategyExtension(system).actorOf(StoreActor.props(pluginConfig), "eventStoreActor")
 
   override def store(actions: Seq[DBIO[_]], notifier: Notifier)(
       implicit executionContext: ExecutionContext
@@ -103,7 +118,8 @@ class RowIdUpdatingStrategy(override val pluginConfig: PluginConfig, override va
 
   import driver.api._
 
-  private val rowIdUpdater: ActorRef = system.systemActorOf(RowIdUpdater.props(pluginConfig), "AkkaPgRowIdUpdater")
+  private val rowIdUpdater: ActorRef =
+    WriteStrategyExtension(system).actorOf(RowIdUpdater.props(pluginConfig), "AkkaPgRowIdUpdater")
 
   def store(actions: Seq[DBIO[_]], notifier: Notifier)(implicit executionContext: ExecutionContext): Future[Unit] =
     pluginConfig.database

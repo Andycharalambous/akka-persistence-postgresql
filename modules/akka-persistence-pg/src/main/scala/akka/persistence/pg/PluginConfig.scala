@@ -44,13 +44,14 @@ class PluginConfig(systemConfig: Config) {
 
   def shutdownDataSource(): Unit = database.close()
 
-  val jsonType: String = config.getString("pgjson")
+  val jsonType: String     = config.getString("pgjson")
+  val noOffsetText: String = config.getString("noOffsetTex")
 
   val pgPostgresProfile = new PgPostgresProfileImpl(jsonType match {
     case "jsonb"   => "jsonb"
     case "json"    => "json"
     case a: String => sys.error(s"unsupported value for pgjson '$a'. Only 'json' or 'jsonb' supported")
-  })
+  }, noOffsetText)
 
   lazy val database: JdbcBackend.DatabaseDef = createDatabase
 

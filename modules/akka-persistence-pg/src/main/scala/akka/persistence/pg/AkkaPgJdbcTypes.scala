@@ -18,6 +18,7 @@ import scala.reflect.ClassTag
 trait AkkaPgJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
 
   def pgjson: String
+  def noOffsetText: String
 
   import driver.api._
 
@@ -65,7 +66,7 @@ trait AkkaPgJdbcTypes extends JdbcTypesComponent { driver: PostgresProfile =>
       .optionalStart()
       .appendFraction(ChronoField.NANO_OF_SECOND, 0, 6, true)
       .optionalEnd()
-      .appendOffset("+HH:mm", "+00")
+      .appendOffset("+HH:mm", noOffsetText)
       .toFormatter()
 
   protected val fromOffsetDateTimeOrInfinity: String => OffsetDateTime =
